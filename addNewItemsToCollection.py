@@ -13,11 +13,11 @@ secretsVersion = raw_input('To edit production server, enter the name of the sec
 if secretsVersion != '':
     try:
         secrets = __import__(secretsVersion)
-        print 'Editing Production'
+        print('Editing Production')
     except ImportError:
-        print 'Editing Stage'
+        print('Editing Stage')
 else:
-    print 'Editing Stage'
+    print('Editing Stage')
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-d', '--directory', help='the directory of files to be ingested. optional - if not provided, the script will ask for input')
@@ -58,9 +58,9 @@ for root, dirs, files in os.walk(directory, topdown=True):
 elapsedTime = time.time() - startTime
 m, s = divmod(elapsedTime, 60)
 h, m = divmod(m, 60)
-print 'File list creation time: ','%d:%02d:%02d' % (h, m, s)
+print('File list creation time: ','%d:%02d:%02d' % (h, m, s))
 
-f=csv.writer(open(handle.replace('/','-')+'addedFilesList.csv', 'wb'))
+f=csv.writer(open(handle.replace('/','-')+'addedFilesList.csv', 'w'))
 f.writerow(['itemID'])
 
 for k,v in fileList.items():
@@ -76,19 +76,19 @@ headerFileUpload = {'accept':'application/json'}
 cookiesFileUpload = cookies
 status = requests.get(baseURL+'/rest/status', headers=header, cookies=cookies, verify=verify).json()
 userFullName = status['fullname']
-print 'authenticated'
+print('authenticated')
 
 #Get collection ID
 endpoint = baseURL+'/rest/handle/'+handle
 collection = requests.get(endpoint, headers=header, cookies=cookies, verify=verify).json()
 collectionID = str(collection['uuid'])
-print collectionID
+print(collectionID)
 
 # Post items
 collectionMetadata = json.load(open(directory+'/'+'metadataNewFiles.json'))
 for itemMetadata in collectionMetadata:
     counter = counter - 1
-    print 'Items remaining: ', counter
+    print('Items remaining: ', counter)
     fileExists = ''
     updatedItemMetadata = {}
     updatedItemMetadataList = []
@@ -103,9 +103,9 @@ for itemMetadata in collectionMetadata:
         if fileIdentifier in k:
             fileExists = True
     if fileExists == True:
-        print fileIdentifier
+        print(fileIdentifier)
         post = requests.post(baseURL+'/rest/collections/'+collectionID+'/items', headers=header, cookies=cookies, verify=verify, data=updatedItemMetadata).json()
-        print json.dumps(post)
+        print(json.dumps(post))
         itemID = post['link']
 
     # #Post bitstream - front and back
@@ -113,17 +113,17 @@ for itemMetadata in collectionMetadata:
     #     if k == fileIdentifier + '-Front':
     #         bitstream = fileList[k]
     #         fileName = bitstream[bitstream.rfind('/')+1:]
-    #         data = open(bitstream, 'rb')
+    #         data = open(bitstream, 'r')
     #         post = requests.post(baseURL+itemID+'/bitstreams?name='+fileName, headers=headerFileUpload, cookies=cookies, verify=verify, data=data).json()
-    #         print post
+    #         print(post)
     #
     # for k,v in fileList.items():
     #     if k == fileIdentifier + '-Back':
     #         bitstream = fileList[k]
     #         fileName = bitstream[bitstream.rfind('/')+1:]
-    #         data = open(bitstream, 'rb')
+    #         data = open(bitstream, 'r')
     #         post = requests.post(baseURL+itemID+'/bitstreams?name='+fileName, headers=headerFileUpload, cookies=cookies, verify=verify, data=data).json()
-    #         print post
+    #         print(post)
 
     #Post bitstream - starts with file identifier
     orderedFileList = collections.OrderedDict(sorted(fileList.items()))
@@ -131,10 +131,10 @@ for itemMetadata in collectionMetadata:
         if k.startswith(fileIdentifier):
             bitstream = orderedFileList[k]
             fileName = bitstream[bitstream.rfind('/')+1:]
-            print fileName
-            data = open(bitstream, 'rb')
+            print(fileName)
+            data = open(bitstream, 'r')
             post = requests.post(baseURL+itemID+'/bitstreams?name='+fileName, headers=headerFileUpload, cookies=cookies, verify=verify, data=data).json()
-            print post
+            print(post)
 
     #Create provenance notes
     provNote = {}
@@ -168,11 +168,11 @@ for itemMetadata in collectionMetadata:
     #Post provenance notes
     provNote = json.dumps([provNote, provNote2])
     post = requests.put(baseURL+itemID+'/metadata', headers=header, cookies=cookies, verify=verify, data=provNote)
-    print post
+    print(post)
 
 logout = requests.post(baseURL+'/rest/logout', headers=header, cookies=cookies, verify=verify)
 
 elapsedTime = time.time() - startTime
 m, s = divmod(elapsedTime, 60)
 h, m = divmod(m, 60)
-print 'Total script run time: ','%d:%02d:%02d' % (h, m, s)
+print('Total script run time: ','%d:%02d:%02d' % (h, m, s))

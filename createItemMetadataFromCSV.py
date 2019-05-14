@@ -3,9 +3,13 @@ import json
 import csv
 
 def createMetadataElementCSV (key, valueSource, language):
-    value = row[valueSource]
+    value = row[valueSource].strip()
     if value != '':
         if language != '':
+            metadataElement = {'key': key, 'language': language, 'value': value}
+            metadata.append(metadataElement)
+        elif key == 'dc.date.issued' and '/' in value:
+            value = value.replace('/', '--')
             metadataElement = {'key': key, 'language': language, 'value': value}
             metadata.append(metadataElement)
         else:
@@ -43,7 +47,7 @@ def createMetadataElementDirect (key, value, language):
         metadataElement = {'key': key, 'value': value}
         metadata.append(metadataElement)
 
-fileName = raw_input('Enter fileName (including \'.csv\'): ')
+fileName = input('Enter fileName (including \'.csv\'): ')
 
 with open(fileName) as csvfile:
     reader = csv.DictReader(csvfile)
@@ -52,23 +56,24 @@ with open(fileName) as csvfile:
     for row in reader:
         metadata = []
         createMetadataElementCSV('fileIdentifier', '????', '')
-        createMetadataElementCSV('dc.contributor.author', '????', '')
+        createMetadataElementCSV('dc.contributor.author', '????', 'en_US')
         createMetadataElementCSV('dc.contributor.other', '????', '')
         createMetadataElementCSV('dc.date.issued', '????', '')
+        createMetadataElementCSV('local.embargo.lift', '????', '')
+        createMetadataElementCSV('local.embargo.terms', '????', '')
         createMetadataElementCSV('dc.description.abstract', '????', 'en_US')
         createMetadataElementCSV('dc.format.extent', '????', '')
         createMetadataElementDirect('dc.format.mimetype', '????', 'en_US')
         createMetadataElementDirect('dc.identifier.other', '????','')
         createMetadataElementDirect('dc.language.iso', '????', 'en_US')
-        createMetadataElementDirect('dc.publisher', 'Johns Hopkins University Sheridan Libraries', 'en_US')
-        createMetadataElementDirect('dc.relation', 'Access the finding aid for the full ???? collection at ?????.', '')
-        createMetadataElementCSV('dc.relation.ispartof', '????', 'en_US')
-        createMetadataElementDirect('dc.rights', 'Single copies may be made for research purposes. Researchers are responsible for determining any copyright questions. It is not necessary to seek our permission as the owner of the physical work to publish or otherwise use public domain materials that we have made available for use, unless Johns Hopkins University holds the copyright. If you are the copyright owner of this content and wish to contact us regarding our choice to provide access to this material online, please visit our takedown policy at https://www.library.jhu.edu/policy/digital-collections-statement-use-takedown-policy/.', 'en_US')
-        createMetadataElementDirect('dc.subject', '????', 'en_US')
+        createMetadataElementDirect('dc.publisher', '????', 'en_US')
+        createMetadataElementDirect('dc.relation', '????', 'en_US')
+        createMetadataElementDirect('dc.rights', '????', 'en_US')
+        createMetadataElementCSVSplitField('dc.subject', '????', 'en_US')
         createMetadataElementCSV('dc.title', '????', 'en_US')
-        createMetadataElementDirect('dc.type', '????', 'en_US')
+        createMetadataElementCSV('dc.type', '????', 'en_US')
 
-
+        print len(metadata)
         item = {'metadata': metadata}
         metadataGroup.append(item)
         counter = counter + 1
