@@ -112,6 +112,7 @@ with open(fileName) as csvfile:
                         updatedMetadataElement['key'] = metadata[l]['key']
                         updatedMetadataElement['value'] = replacementValue
                         updatedMetadataElement['language'] = languageValue
+                        print(updatedMetadataElement)
                         itemMetadataProcessed.append(updatedMetadataElement)
                         provNote = '\''+key+': '+replacedValue+'\' was replaced by \''+key+': '+replacementValue+'\' through a batch process on '+datetime.now().strftime('%Y-%m-%d %H:%M:%S')+'.'
                         provNoteElement = {}
@@ -124,6 +125,7 @@ with open(fileName) as csvfile:
                         if metadata[l] not in itemMetadataProcessed:
                             itemMetadataProcessed.append(metadata[l])
                 itemMetadataProcessed = json.dumps(itemMetadataProcessed)
+                print(itemMetadataProcessed)
                 print('updated', itemLink, recordsEdited)
                 delete = requests.delete(baseURL+itemLink+'/metadata', headers=header, cookies=cookies, verify=verify)
                 print(delete)
