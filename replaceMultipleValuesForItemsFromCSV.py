@@ -72,8 +72,8 @@ with open(fileName) as csvfile:
         itemMetadataProcessed = []
         original_element_count = 0
         element_count = 0
-        itemID = row['link']
-        decade = row['dc.subject']
+        itemID = row['link'].strip()
+        decade = row['dc.subject'].strip()
         logInformation = [itemID]
         print(itemID)
         itemMetadata = requests.get(baseURL+str(itemID)+'/metadata', headers=header, cookies=cookies, verify=verify).json()
@@ -82,6 +82,17 @@ with open(fileName) as csvfile:
             itemMetadataProcessed.append(subjectElement)
             element_count = element_count + 1
             logInformation.append(decade)
+
+            provNote = "{} was added as 'dc.subject' through a batch process on {}.".format(decade, (datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+            provNoteElement = {}
+            provNoteElement['key'] = 'dc.description.provenance'
+            provNoteElement['value'] = provNote
+            provNoteElement['language'] = 'en_US'
+            itemMetadataProcessed.append(provNoteElement)
+            element_count = element_count + 1
+
+        elif decade == 'not converted':
+            logInformation.append('No subject added')
         for element in itemMetadata:
             element.pop('schema', None)
             element.pop('element', None)
@@ -92,23 +103,33 @@ with open(fileName) as csvfile:
             if oldKey in keystofind:
                 oldValue = element['value']
                 newKey = oldKey
-                newValue = row[oldKey]
-                updatedMetadataElement = {}
-                updatedMetadataElement['key'] = newKey
-                updatedMetadataElement['value'] = newValue
-                updatedMetadataElement['language'] = languageValue
-                itemMetadataProcessed.append(updatedMetadataElement)
-                element_count = element_count + 1
+                newValue = row[oldKey].strip()
+                if newValue == '':
+                    provNote = "{} was deleted through a batch process on {}.".format(oldKey, (datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+                    provNoteElement = {}
+                    provNoteElement['key'] = 'dc.description.provenance'
+                    provNoteElement['value'] = provNote
+                    provNoteElement['language'] = 'en_US'
+                    itemMetadataProcessed.append(provNoteElement)
+                    element_count = element_count + 1
+                    logInformation.append('dc.description.abstract deleted')
+                else:
+                    updatedMetadataElement = {}
+                    updatedMetadataElement['key'] = newKey
+                    updatedMetadataElement['value'] = newValue
+                    updatedMetadataElement['language'] = languageValue
+                    itemMetadataProcessed.append(updatedMetadataElement)
+                    element_count = element_count + 1
 
-                provNote = "{}: {} was replaced by {}: {} through a batch process on {}.".format(oldKey, oldValue, newKey, newValue, (datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
-                provNoteElement = {}
-                provNoteElement['key'] = 'dc.description.provenance'
-                provNoteElement['value'] = provNote
-                provNoteElement['language'] = 'en_US'
-                itemMetadataProcessed.append(provNoteElement)
-                element_count = element_count + 1
-                addToLog = [oldKey, oldValue, newKey, newValue]
-                logInformation.extend(addToLog)
+                    provNote = "{}: {} was replaced by {}: {} through a batch process on {}.".format(oldKey, oldValue, newKey, newValue, (datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+                    provNoteElement = {}
+                    provNoteElement['key'] = 'dc.description.provenance'
+                    provNoteElement['value'] = provNote
+                    provNoteElement['language'] = 'en_US'
+                    itemMetadataProcessed.append(provNoteElement)
+                    element_count = element_count + 1
+                    addToLog = [oldKey, oldValue, newKey, newValue]
+                    logInformation.extend(addToLog)
             elif oldKey == 'dc.identifier.uri':
                 uri = element['value']
                 itemMetadataProcessed.append(element)
