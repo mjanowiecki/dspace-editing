@@ -28,22 +28,22 @@ fileIdentifierList = []
 for root, dirs, files in os.walk(directory, topdown=True):
     for file in files:
         if file.endswith(fileExtension):
-            file.replace('.'+fileExtension,'')
+            file.replace('.'+fileExtension, '')
             fileIdentifierList.append(file)
 
 elapsedTime = time.time() - startTime
 m, s = divmod(elapsedTime, 60)
 h, m = divmod(m, 60)
-print('File list creation time: ','%d:%02d:%02d' % (h, m, s))
+print('File list creation time: ', '%d:%02d:%02d' % (h, m, s))
 
-f=csv.writer(open('collectionfileList.csv', 'w'))
+f = csv.writer(open('collectionfileList.csv', 'w'))
 f.writerow(['fileName'])
 
 for file in fileIdentifierList:
     f.writerow([file])
 
 metadataIdentifierList = []
-f=csv.writer(open('metadataFileList.csv', 'w'))
+f = csv.writer(open('metadataFileList.csv', 'w'))
 f.writerow(['metadataItemID'])
 with open(fileNameCSV) as csvfile:
     reader = csv.DictReader(csvfile)
@@ -58,7 +58,7 @@ for fileID in fileIdentifierList:
         if fileID.startswith(metadataID):
             fileMatches.append(fileID)
 
-f=csv.writer(open('filesNotInMetadata.csv', 'w'))
+f = csv.writer(open('filesNotInMetadata.csv', 'w'))
 f.writerow(['fileItemID'])
 filesNotInMetadata = set(fileIdentifierList) - set(fileMatches)
 for file in filesNotInMetadata:
@@ -73,11 +73,11 @@ for metadataID in metadataIdentifierList:
 metadataWithNoFiles = set(metadataIdentifierList) - set(metadataMatches)
 
 with open(fileNameCSV) as csvfile:
-    f=csv.writer(open('metadataWithNoFiles.csv', 'w'))
+    f = csv.writer(open('metadataWithNoFiles.csv', 'w'))
     reader = csv.DictReader(csvfile)
     header = next(reader)
     headerRow = []
-    for k,v in header.iteritems():
+    for k, v in header.iteritems():
         headerRow.append(k)
     f.writerow(headerRow)
     for row in reader:
@@ -89,11 +89,11 @@ with open(fileNameCSV) as csvfile:
                 f.writerow(csvRow)
 
 with open(fileNameCSV) as csvfile:
-    f=csv.writer(open('metadataWithFiles.csv', 'w'))
+    f = csv.writer(open('metadataWithFiles.csv', 'w'))
     reader = csv.DictReader(csvfile)
     header = next(reader)
     headerRow = []
-    for k,v in header.iteritems():
+    for k, v in header.iteritems():
         headerRow.append(k)
     f.writerow(headerRow)
     for row in reader:

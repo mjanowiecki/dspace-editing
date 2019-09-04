@@ -7,7 +7,7 @@ from datetime import datetime
 import urllib3
 import argparse
 
-secretsVersion = raw_input('To edit production server, enter the name of the secrets file: ')
+secretsVersion = input('To edit production server, enter the name of the secrets file: ')
 if secretsVersion != '':
     try:
         secrets = __import__(secretsVersion)
@@ -25,12 +25,12 @@ args = parser.parse_args()
 if args.deletedKey:
     deletedKey = args.deletedKey
 else:
-    deletedKey = raw_input('Enter the key to be deleted: ')
+    deletedKey = input('Enter the key to be deleted: ')
 
 if args.handle:
     handle = args.handle
 else:
-    handle = raw_input('Enter collection handle: ')
+    handle = input('Enter collection handle: ')
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -42,11 +42,11 @@ verify = secrets.verify
 skippedCollections = secrets.skippedCollections
 
 startTime = time.time()
-data = {'email':email,'password':password}
-header = {'content-type':'application/json','accept':'application/json'}
+data = {'email': email, 'password': password}
+header = {'content-type': 'application/json', 'accept': 'application/json'}
 session = requests.post(baseURL+'/rest/login', headers=header, verify=verify, params=data).cookies['JSESSIONID']
 cookies = {'JSESSIONID': session}
-headerFileUpload = {'accept':'application/json'}
+headerFileUpload = {'accept': 'application/json'}
 cookiesFileUpload = cookies
 status = requests.get(baseURL+'/rest/status', headers=header, cookies=cookies, verify=verify).json()
 userFullName = status['fullname']
@@ -57,7 +57,7 @@ collection = requests.get(endpoint, headers=header, cookies=cookies, verify=veri
 collectionID = collection['uuid']
 collSels = '&collSel[]=' + collectionID
 
-f=csv.writer(open(filePath+'deletedValues'+datetime.now().strftime('%Y-%m-%d %H.%M.%S')+'.csv', 'wb'))
+f = csv.writer(open(filePath+'deletedValues'+datetime.now().strftime('%Y-%m-%d %H.%M.%S')+'.csv', 'wb'))
 f.writerow(['handle']+['deletedValue']+['delete']+['post'])
 offset = 0
 recordsEdited = 0
@@ -78,7 +78,7 @@ for itemLink in itemLinks:
     itemMetadataProcessed = []
     print(itemLink)
     metadata = requests.get(baseURL + itemLink + '/metadata', headers=header, cookies=cookies, verify=verify).json()
-    for l in range (0, len (metadata)):
+    for l in range(0, len(metadata)):
         metadata[l].pop('schema', None)
         metadata[l].pop('element', None)
         metadata[l].pop('qualifier', None)

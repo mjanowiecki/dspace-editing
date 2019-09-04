@@ -2,7 +2,8 @@
 import json
 import csv
 
-def createMetadataElementCSV (key, valueSource, language):
+
+def createMetadataElementCSV(key, valueSource, language):
     value = row[valueSource].strip()
     if value != '':
         if language != '':
@@ -18,7 +19,8 @@ def createMetadataElementCSV (key, valueSource, language):
     else:
         pass
 
-def createMetadataElementCSVSplitField (key, valueSource, language):
+
+def createMetadataElementCSVSplitField(key, valueSource, language):
     if row[valueSource] != '':
         if '|' in row[valueSource]:
             values = row[valueSource].split('|')
@@ -39,13 +41,16 @@ def createMetadataElementCSVSplitField (key, valueSource, language):
                 metadata.append(metadataElement)
     else:
         pass
-def createMetadataElementDirect (key, value, language):
+
+
+def createMetadataElementDirect(key, value, language):
     if language != '':
         metadataElement = {'key': key, 'language': language, 'value': value}
         metadata.append(metadataElement)
     else:
         metadataElement = {'key': key, 'value': value}
         metadata.append(metadataElement)
+
 
 fileName = input('Enter fileName (including \'.csv\'): ')
 
@@ -64,7 +69,7 @@ with open(fileName) as csvfile:
         createMetadataElementCSV('dc.description.abstract', '????', 'en_US')
         createMetadataElementCSV('dc.format.extent', '????', '')
         createMetadataElementDirect('dc.format.mimetype', '????', 'en_US')
-        createMetadataElementDirect('dc.identifier.other', '????','')
+        createMetadataElementDirect('dc.identifier.other', '????', '')
         createMetadataElementDirect('dc.language.iso', '????', 'en_US')
         createMetadataElementDirect('dc.publisher', '????', 'en_US')
         createMetadataElementDirect('dc.relation', '????', 'en_US')
@@ -73,11 +78,11 @@ with open(fileName) as csvfile:
         createMetadataElementCSV('dc.title', '????', 'en_US')
         createMetadataElementCSV('dc.type', '????', 'en_US')
 
-        print len(metadata)
+        print(len(metadata))
         item = {'metadata': metadata}
         metadataGroup.append(item)
         counter = counter + 1
-        print counter
+        print(counter)
 
-f=open('metadata.json', 'w')
+f = open('metadata.json', 'w')
 json.dump(metadataGroup, f)

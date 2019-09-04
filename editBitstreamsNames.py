@@ -35,16 +35,16 @@ verify = secrets.verify
 skippedCollections = secrets.skippedCollections
 
 startTime = time.time()
-data = {'email':email,'password':password}
-header = {'content-type':'application/json','accept':'application/json'}
+data = {'email': email, 'password': password}
+header = {'content-type': 'application/json', 'accept': 'application/json'}
 session = requests.post(baseURL+'/rest/login', headers=header, verify=verify, params=data).cookies['JSESSIONID']
 cookies = {'JSESSIONID': session}
-headerFileUpload = {'accept':'application/json'}
+headerFileUpload = {'accept': 'application/json'}
 cookiesFileUpload = cookies
 status = requests.get(baseURL+'/rest/status', headers=header, cookies=cookies, verify=verify).json()
 print('authenticated')
 
-f=csv.writer(open(filePath+'editBitstreamName'+datetime.now().strftime('%Y-%m-%d %H.%M.%S')+'.csv', 'w'))
+f = csv.writer(open(filePath+'editBitstreamName'+datetime.now().strftime('%Y-%m-%d %H.%M.%S')+'.csv', 'w'))
 f.writerow(['itemID']+['oldBitstreamName']+['newBitstreamName']+['post'])
 with open(fileName) as csvfile:
     reader = csv.DictReader(csvfile)
@@ -61,13 +61,13 @@ with open(fileName) as csvfile:
             bitstreamID = bitstream['link']
             updatedBitstream = json.dumps(bitstream)
             print(json.dumps(bitstream))
-            updatedBitstream = updatedBitstream.replace(oldValue,newValue)
+            updatedBitstream = updatedBitstream.replace(oldValue, newValue)
             post = requests.put(baseURL+bitstreamID, headers=header, cookies=cookies, verify=verify, data=updatedBitstream)
             print(post)
             f.writerow([itemID]+[oldValue]+[newValue]+[post])
             updatedItemMetadataList = []
             metadata = requests.get(baseURL+'/rest/items/'+str(itemID)+'/metadata', headers=header, cookies=cookies, verify=verify).json()
-            for l in range (0, len (metadata)):
+            for l in range(0, len(metadata)):
                 metadata[l].pop('schema', None)
                 metadata[l].pop('element', None)
                 metadata[l].pop('qualifier', None)

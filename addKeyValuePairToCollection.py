@@ -51,11 +51,11 @@ verify = secrets.verify
 skippedCollections = secrets.skippedCollections
 
 startTime = time.time()
-data = {'email':email,'password':password}
-header = {'content-type':'application/json','accept':'application/json'}
+data = {'email': email, 'password': password}
+header = {'content-type': 'application/json', 'accept': 'application/json'}
 session = requests.post(baseURL+'/rest/login', headers=header, verify=verify, params=data).cookies['JSESSIONID']
 cookies = {'JSESSIONID': session}
-headerFileUpload = {'accept':'application/json'}
+headerFileUpload = {'accept': 'application/json'}
 cookiesFileUpload = cookies
 status = requests.get(baseURL+'/rest/status', headers=header, cookies=cookies, verify=verify).json()
 print('authenticated')
@@ -72,24 +72,24 @@ while items != []:
         time.sleep(5)
         items = requests.get(baseURL+'/rest/collections/'+str(collectionID)+'/items?limit=200&offset='+str(offset), headers=header, cookies=cookies, verify=verify)
     items = items.json()
-    for k in range (0, len (items)):
+    for k in range(0, len(items)):
         itemID = items[k]['uuid']
         itemList.append(itemID)
     offset = offset + 200
 elapsedTime = time.time() - startTime
 m, s = divmod(elapsedTime, 60)
 h, m = divmod(m, 60)
-print('Item list creation time: ','%d:%02d:%02d' % (h, m, s))
+print('Item list creation time: ', '%d:%02d:%02d' % (h, m, s))
 
 recordsEdited = 0
-f=csv.writer(open(filePath+'addKeyValuePair'+datetime.now().strftime('%Y-%m-%d %H.%M.%S')+'.csv', 'w'))
+f = csv.writer(open(filePath+'addKeyValuePair'+datetime.now().strftime('%Y-%m-%d %H.%M.%S')+'.csv', 'w'))
 f.writerow(['itemID']+['addedKey']+['addedValue']+['delete']+['post'])
 for number, itemID in enumerate(itemList):
     itemsRemaining = len(itemList) - number
     print('Items remaining: ', itemsRemaining, 'ItemID: ', itemID)
     metadata = requests.get(baseURL+'/rest/items/'+str(itemID)+'/metadata', headers=header, cookies=cookies, verify=verify).json()
     itemMetadataProcessed = []
-    for l in range (0, len (metadata)):
+    for l in range(0, len(metadata)):
         metadata[l].pop('schema', None)
         metadata[l].pop('element', None)
         metadata[l].pop('qualifier', None)

@@ -6,9 +6,8 @@ import time
 import os
 import csv
 import urllib3
-import ast
 import argparse
-import traceback
+
 
 secretsVersion = input('To edit production server, enter the name of the secrets file: ')
 if secretsVersion != '':
@@ -54,47 +53,47 @@ verify = secrets.verify
 skippedCollections = secrets.skippedCollections
 
 startTime = time.time()
-data = {'email':email,'password':password}
-header = {'content-type':'application/json','accept':'application/json'}
+data = {'email': email, 'password': password}
+header = {'content-type': 'application/json', 'accept': 'application/json'}
 session = requests.post(baseURL+'/rest/login', headers=header, verify=verify, params=data).cookies['JSESSIONID']
 cookies = {'JSESSIONID': session}
-headerFileUpload = {'accept':'application/json'}
+headerFileUpload = {'accept': 'application/json'}
 cookiesFileUpload = cookies
 status = requests.get(baseURL+'/rest/status', headers=header, cookies=cookies, verify=verify).json()
 userFullName = status['fullname']
 print('authenticated')
 
-#create file list and export csvf
+# create file list and export csvf
 fileList = {}
 for root, dirs, files in os.walk(directory, topdown=True):
     print('building file list')
     for file in files:
         if file.endswith(fileExtension):
-            fileList[file[:file.index('.')]] = os.path.join(root, file).replace('\\','/')
+            fileList[file[:file.index('.')]] = os.path.join(root, file).replace('\\', '/')
 elapsedTime = time.time() - startTime
 m, s = divmod(elapsedTime, 60)
 h, m = divmod(m, 60)
-print('File list creation time: ','%d:%02d:%02d' % (h, m, s))
+print('File list creation time: ', '%d:%02d:%02d' % (h, m, s))
 
-f=csv.writer(open(collectionName.replace(' ','')+'fileList.csv', 'w'))
+f = csv.writer(open(collectionName.replace(' ', '')+'fileList.csv', 'w'))
 f.writerow(['itemID'])
 
-for k,v in fileList.items():
+for k, v in fileList.items():
     f.writerow([v[v.rindex('/')+1:]])
 
-f2=open('fileListDict.txt', 'w')
+f2 = open('fileListDict.txt', 'w')
 f2.write(json.dumps(fileList))
 
-## Use this section of code if 'fileListDict.txt' has already been generated and comment out lines 64-83. This is useful if uploading a very large collection as generating the file list will take some time.
+# Use this section of code if 'fileListDict.txt' has already been generated and comment out lines 64-83. This is useful if uploading a very large collection as generating the file list will take some time.
 # f3=open('fileListDict.txt', 'r')
 # fileList = json.load(f3)
 
-#Get community ID
+# Get community ID
 endpoint = baseURL+'/rest/handle/'+communityHandle
 community = requests.get(endpoint, headers=header, cookies=cookies, verify=verify).json()
 communityID = str(community['uuid'])
 
-#Post collection
+# Post collection
 collection = json.dumps({'name': collectionName})
 post = requests.post(baseURL+'/rest/communities/'+communityID+'/collections', headers=header, cookies=cookies, verify=verify, data=collection).json()
 collectionID = post['link']
@@ -118,15 +117,15 @@ for itemMetadata in collectionMetadata:
     for k in fileList:
         if fileIdentifier in k:
             fileExists = True
-    if fileExists == True:
+    if fileExists is True:
         print(fileIdentifier)
         post = requests.post(baseURL+collectionID+'/items', headers=header, cookies=cookies, verify=verify, data=updatedItemMetadata).json()
-        #print(json.dumps(post))
+        # print(json.dumps(post))
         itemID = post['link']
         itemID_name = itemID[13:]
         items_total = items_total + 1
         print('Created item: {}'.format(itemID_name))
-        print('Total items: {}'.format( items_total))
+        print('Total items: {}'.format(items_total))
 
         # #Post bitstream - front and back. Deprecated method, preserved for reference
         # for k,v in fileList.items():
@@ -145,8 +144,8 @@ for itemMetadata in collectionMetadata:
         #         post = requests.post(baseURL+itemID+'/bitstreams?name='+fileName, headers=headerFileUpload, verify=verify, data=data).json()
         #         print(post)
 
-        #Post bitstream - starts with file identifier
-        for k,v in fileList.items():
+        # Post bitstream - starts with file identifier
+        for k, v in fileList.items():
             if k.startswith(fileIdentifier):
                 bitstream = fileList[k]
                 fileName = bitstream[bitstream.rfind('/')+1:]
@@ -190,11 +189,11 @@ for itemMetadata in collectionMetadata:
                             print('Failed to update for item {}'.format(itemID_name))
                 print('Total embargo items: {}'.format(embargo_items))
 
-        #Create provenance notes
+        # Create provenance notes
         provNote = {}
         provNote['key'] = 'dc.description.provenance'
         provNote['language'] = 'en_US'
-        utc= datetime.datetime.utcnow()
+        utc = datetime.datetime.utcnow()
         utcTime = utc.strftime('%Y-%m-%dT%H:%M:%SZ')
         bitstreams = requests.get(baseURL+itemID+'/bitstreams', headers=header, cookies=cookies, verify=verify).json()
         bitstreamCount = len(bitstreams)
@@ -203,7 +202,7 @@ for itemMetadata in collectionMetadata:
             fileName = bitstream['name']
             size = str(bitstream['sizeBytes'])
             checksum = bitstream['checkSum']['value']
-            algorithm = bitstream ['checkSum']['checkSumAlgorithm']
+            algorithm = bitstream['checkSum']['checkSumAlgorithm']
             provNoteValue = provNoteValue+' '+fileName+': '+size+' bytes, checkSum: '+checksum+' ('+algorithm+')'
         provNote['value'] = provNoteValue
 
@@ -216,11 +215,11 @@ for itemMetadata in collectionMetadata:
             fileName = bitstream['name']
             size = str(bitstream['sizeBytes'])
             checksum = bitstream['checkSum']['value']
-            algorithm = bitstream ['checkSum']['checkSumAlgorithm']
+            algorithm = bitstream['checkSum']['checkSumAlgorithm']
             provNote2Value = provNote2Value+' '+fileName+': '+size+' bytes, checkSum: '+checksum+' ('+algorithm+')'
         provNote2['value'] = provNote2Value
 
-        #Post provenance notes
+        # Post provenance notes
         provNote = json.dumps([provNote, provNote2])
         post = requests.put(baseURL+itemID+'/metadata', headers=header, cookies=cookies, verify=verify, data=provNote)
         print(post)
@@ -231,4 +230,4 @@ logout = requests.post(baseURL+'/rest/logout', headers=header, cookies=cookies, 
 elapsedTime = time.time() - startTime
 m, s = divmod(elapsedTime, 60)
 h, m = divmod(m, 60)
-print('Total script run time: ','%d:%02d:%02d' % (h, m, s))
+print('Total script run time: ', '%d:%02d:%02d' % (h, m, s))

@@ -45,21 +45,21 @@ print(handleIdDict)
 id = input('test')
 
 startTime = time.time()
-data = {'email':email,'password':password}
-header = {'content-type':'application/json','accept':'application/json'}
+data = {'email': email, 'password': password}
+header = {'content-type': 'application/json', 'accept': 'application/json'}
 session = requests.post(baseURL+'/rest/login', headers=header, verify=verify, params=data).cookies['JSESSIONID']
 cookies = {'JSESSIONID': session}
-headerFileUpload = {'accept':'application/json'}
+headerFileUpload = {'accept': 'application/json'}
 cookiesFileUpload = cookies
 status = requests.get(baseURL+'/rest/status', headers=header, cookies=cookies, verify=verify).json()
 print('authenticated')
 
 collectionMetadata = json.load(open('metadataOverwrite.json'))
 
-f=csv.writer(open(filePath+'metadataOverwrite'+datetime.now().strftime('%Y-%m-%d %H.%M.%S')+'.csv', 'w'))
+f = csv.writer(open(filePath+'metadataOverwrite'+datetime.now().strftime('%Y-%m-%d %H.%M.%S')+'.csv', 'w'))
 f.writerow(['itemID']+['delete']+['post'])
 
-for k,v in handleIdDict.items():
+for k, v in handleIdDict.items():
     for itemMetadata in collectionMetadata:
         updatedItemMetadata = {}
         updatedItemMetadataList = []
@@ -85,7 +85,7 @@ for k,v in handleIdDict.items():
             item = requests.get(endpoint, headers=header, cookies=cookies, verify=verify).json()
             itemID = item['uuid']
             metadata = requests.get(baseURL+'/rest/items/'+str(itemID)+'/metadata', headers=header, cookies=cookies, verify=verify).json()
-            for l in range (0, len (metadata)):
+            for l in range(0, len(metadata)):
                 metadata[l].pop('schema', None)
                 metadata[l].pop('element', None)
                 metadata[l].pop('qualifier', None)

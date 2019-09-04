@@ -29,11 +29,11 @@ communityHandle = input('Enter community handle: ')
 key = input('Enter key: ')
 
 startTime = time.time()
-data = {'email':email,'password':password}
-header = {'content-type':'application/json','accept':'application/json'}
+data = {'email': email, 'password': password}
+header = {'content-type': 'application/json', 'accept': 'application/json'}
 session = requests.post(baseURL+'/rest/login', headers=header, verify=verify, params=data).cookies['JSESSIONID']
 cookies = {'JSESSIONID': session}
-headerFileUpload = {'accept':'application/json'}
+headerFileUpload = {'accept': 'application/json'}
 cookiesFileUpload = cookies
 status = requests.get(baseURL+'/rest/status', headers=header, cookies=cookies, verify=verify).json()
 print('authenticated')
@@ -44,7 +44,7 @@ communityID = community['uuid']
 collections = requests.get(baseURL+'/rest/communities/'+str(communityID)+'/collections', headers=header, cookies=cookies, verify=verify).json()
 
 itemList = []
-for i in range (0, len (collections)):
+for i in range(0, len(collections)):
     collectionID = collections[i]['uuid']
     collectionHandle = collections[i]['handle']
     while items != []:
@@ -53,21 +53,21 @@ for i in range (0, len (collections)):
             time.sleep(5)
             items = requests.get(baseURL+'/rest/collections/'+str(collectionID)+'/items?limit=200&offset='+str(offset), headers=header, cookies=cookies, verify=verify)
         items = items.json()
-        for j in range (0, len (items)):
+        for j in range(0, len(items)):
             itemID = items[j]['uuid']
             itemList.append(itemID)
             offset = offset + 200
             print(offset)
 
-f=csv.writer(open(filePath+'removeUnnecessarySpaces'+datetime.now().strftime('%Y-%m-%d %H.%M.%S')+'.csv', 'w'))
+f = csv.writer(open(filePath+'removeUnnecessarySpaces'+datetime.now().strftime('%Y-%m-%d %H.%M.%S')+'.csv', 'w'))
 f.writerow(['itemID']+['replacedKey']+['replacedValue']+['delete']+['post'])
 for itemID in itemList:
     itemMetadataProcessed = []
     metadata = requests.get(baseURL+'/rest/items/'+str(itemID)+'/metadata', headers=header, cookies=cookies, verify=verify).json()
-    for i in range (0, len (metadata)):
+    for i in range(0, len(metadata)):
         if metadata[i]['key'] == key:
             if '  ' in json.dumps(metadata[i]) or ' ,' in json.dumps(metadata[i]):
-                updatedMetadataElement = json.loads(json.dumps(metadata[i]).replace('   ',' ').replace('  ',' ').replace(' ,',','))
+                updatedMetadataElement = json.loads(json.dumps(metadata[i]).replace('   ', ' ').replace('  ', ' ').replace(' ,', ','))
                 itemMetadataProcessed.append(updatedMetadataElement)
                 f.writerow([itemID]+[metadata[i]['key']]+[metadata[i]['value']])
             else:

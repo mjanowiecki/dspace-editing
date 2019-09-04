@@ -46,11 +46,11 @@ verify = secrets.verify
 skippedCollections = secrets.skippedCollections
 
 startTime = time.time()
-data = {'email':email,'password':password}
-header = {'content-type':'application/json','accept':'application/json'}
+data = {'email': email, 'password': password}
+header = {'content-type': 'application/json', 'accept': 'application/json'}
 session = requests.post(baseURL+'/rest/login', headers=header, verify=verify, params=data).cookies['JSESSIONID']
 cookies = {'JSESSIONID': session}
-headerFileUpload = {'accept':'application/json'}
+headerFileUpload = {'accept': 'application/json'}
 cookiesFileUpload = cookies
 status = requests.get(baseURL+'/rest/status', headers=header, cookies=cookies, verify=verify).json()
 print('authenticated')
@@ -60,12 +60,12 @@ community = requests.get(endpoint, headers=header, cookies=cookies, verify=verif
 communityID = community['uuid']
 collections = requests.get(baseURL+'/rest/communities/'+str(communityID)+'/collections', headers=header, cookies=cookies, verify=verify).json()
 collSels = ''
-for j in range (0, len (collections)):
+for j in range(0, len(collections)):
     collectionID = collections[j]['uuid']
     collSel = '&collSel[]=' + collectionID
     collSels = collSels + collSel
 
-f=csv.writer(open(filePath+'replaceKey'+datetime.now().strftime('%Y-%m-%d %H.%M.%S')+'.csv', 'w'))
+f = csv.writer(open(filePath+'replaceKey'+datetime.now().strftime('%Y-%m-%d %H.%M.%S')+'.csv', 'w'))
 f.writerow(['itemID']+['replacedKey']+['replacedValue']+['delete']+['post'])
 offset = 0
 recordsEdited = 0
@@ -86,7 +86,7 @@ for itemLink in itemLinks:
     itemMetadataProcessed = []
     print(itemLink)
     metadata = requests.get(baseURL + itemLink + '/metadata', headers=header, cookies=cookies, verify=verify).json()
-    for l in range (0, len (metadata)):
+    for l in range(0, len(metadata)):
         metadata[l].pop('schema', None)
         metadata[l].pop('element', None)
         metadata[l].pop('qualifier', None)

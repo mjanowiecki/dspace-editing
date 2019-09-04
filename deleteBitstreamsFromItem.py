@@ -28,10 +28,10 @@ skippedCollections = secrets.skippedCollections
 itemHandle = input('Enter item handle: ')
 
 startTime = time.time()
-data = json.dumps({'email':email,'password':password})
-header = {'content-type':'application/json','accept':'application/json'}
+data = json.dumps({'email': email, 'password': password})
+header = {'content-type': 'application/json', 'accept': 'application/json'}
 session = requests.post(baseURL + '/rest/login', headers=header, cookies=cookies, verify=verify, data=data).content
-header = {'content-type':'application/json','accept':'application/json', 'rest-dspace-token':session}
+header = {'content-type': 'application/json', 'accept': 'application/json', 'rest-dspace-token': session}
 print('authenticated')
 
 bitstreamList = []
@@ -56,7 +56,7 @@ h, m = divmod(m, 60)
 print('Bitstreams list creation time: ', '%d:%02d:%02d' % (h, m, s))
 print(bitstreamList)
 
-f=csv.writer(open(filePath + 'deletedBitstreams' + datetime.now().strftime('%Y-%m-%d %H.%M.%S') + '.csv', 'w'))
+f = csv.writer(open(filePath + 'deletedBitstreams' + datetime.now().strftime('%Y-%m-%d %H.%M.%S') + '.csv', 'w'))
 f.writerow(['bitstreamID'] + ['delete'])
 for number, bitstreamID in enumerate(bitstreamList):
     bitstreamsRemaining = len(bitstreamList) - number

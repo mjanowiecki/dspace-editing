@@ -21,7 +21,7 @@ parser.add_argument('-i', '--handle', help='handle of the collection. optional -
 args = parser.parse_args()
 
 if args.fileNameCSV:
-    fileNameCSV =args.fileNameCSV
+    fileNameCSV = args.fileNameCSV
 else:
     fileNameCSV = input('Enter the metadata CSV file (including \'.csv\'): ')
 if args.handle:
@@ -38,11 +38,11 @@ filePath = secrets.filePath
 verify = secrets.verify
 skippedCollections = secrets.skippedCollections
 
-data = {'email':email,'password':password}
-header = {'content-type':'application/json','accept':'application/json'}
+data = {'email': email, 'password': password}
+header = {'content-type': 'application/json', 'accept': 'application/json'}
 session = requests.post(baseURL+'/rest/login', headers=header, verify=verify, params=data).cookies['JSESSIONID']
 cookies = {'JSESSIONID': session}
-headerFileUpload = {'accept':'application/json'}
+headerFileUpload = {'accept': 'application/json'}
 cookiesFileUpload = cookies
 status = requests.get(baseURL+'/rest/status', headers=header, cookies=cookies, verify=verify).json()
 userFullName = status['fullname']
@@ -53,7 +53,7 @@ collection = requests.get(endpoint, headers=header, cookies=cookies, verify=veri
 collectionID = collection['uuid']
 print(collection)
 
-#Enter abstract text here
+# Enter abstract text here
 abstractText = ''
 aspaceText = ''
 
@@ -70,10 +70,10 @@ seriesLinks = []
 
 
 for seriesTitle in seriesTitles:
-    handleEdited  = handle.replace('/', '%2F')
-    editedSeriesTitle = seriesTitle.replace(' ','+')
+    handleEdited = handle.replace('/', '%2F')
+    editedSeriesTitle = seriesTitle.replace(' ', '+')
     try:
-        editedSeriesTitle = editedSeriesTitle.replace('"','&quot;')
+        editedSeriesTitle = editedSeriesTitle.replace('"', '&quot;')
     except:
         pass
     seriesLink = '<li><a href="https://jscholarship.library.jhu.edu/discover?scope='+handleEdited+'&query=%22'+editedSeriesTitle+'%22&sort_by=dc.title_sort&order=asc&submit=">'+seriesTitle+'</a></li>'

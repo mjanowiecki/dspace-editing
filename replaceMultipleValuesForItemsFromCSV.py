@@ -8,7 +8,7 @@ import urllib3
 import argparse
 
 
-#This script is meant to replace values in individual items from a CSV file. This is good for changing the values of keys without duplicates, like 'dc.title' or 'dc.type'. This script cannot not change what the keys are called-- it only changes the keys' values. So dc.title would remain as dc.title, but the title may change from 'Bee' to 'Bumblebee'. Warning: This script will change the value for all duplicate, matching keys. For instance, if you have three dc.subject keys, the scripts will change the values of all of them to whatever is in the CSV. You don't want three identical 'dc.subject': 'bumblebees' pairs!
+# This script is meant to replace values in individual items from a CSV file. This is good for changing the values of keys without duplicates, like 'dc.title' or 'dc.type'. This script cannot not change what the keys are called-- it only changes the keys' values. So dc.title would remain as dc.title, but the title may change from 'Bee' to 'Bumblebee'. Warning: This script will change the value for all duplicate, matching keys. For instance, if you have three dc.subject keys, the scripts will change the values of all of them to whatever is in the CSV. You don't want three identical 'dc.subject': 'bumblebees' pairs!
 
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -29,15 +29,15 @@ parser.add_argument('-i', '--keystofind', help='handle of the collection. option
 args = parser.parse_args()
 
 if args.fileName:
-    fileName =args.fileName
+    fileName = args.fileName
 else:
     fileName = input('Enter the metadata CSV file (including \'.csv\'): ')
 if args.keystofind:
     keystofind = args.keystofind
 else:
     keystofind = input("Enter keys where the value will be replaced (dc.description.abstract\ dc.title): ")
-    #to do spaces in argparse, format like this: dc.subject\ dc.title
-    #for this script to work, your 'keystofind' must correspond to your column headers in the CSV fileName.
+    # to do spaces in argparse, format like this: dc.subject\ dc.title
+    # for this script to work, your 'keystofind' must correspond to your column headers in the CSV fileName.
 baseURL = secrets.baseURL
 email = secrets.email
 password = secrets.password
@@ -46,19 +46,17 @@ verify = secrets.verify
 skippedCollections = secrets.skippedCollections
 
 startTime = time.time()
-data = {'email':email,'password':password}
-header = {'content-type':'application/json','accept':'application/json'}
+data = {'email': email, 'password': password}
+header = {'content-type': 'application/json', 'accept': 'application/json'}
 session = requests.post(baseURL+'/rest/login', headers=header, verify=verify, params=data).cookies['JSESSIONID']
 cookies = {'JSESSIONID': session}
-headerFileUpload = {'accept':'application/json'}
+headerFileUpload = {'accept': 'application/json'}
 cookiesFileUpload = cookies
 status = requests.get(baseURL+'/rest/status', headers=header, cookies=cookies, verify=verify).json()
 userFullName = status['fullname']
 print('authenticated')
 
-
-
-f=csv.writer(open(filePath+'replacedValue'+datetime.now().strftime('%Y-%m-%d %H.%M.%S')+'.csv', 'w'))
+f = csv.writer(open(filePath+'replacedValue'+datetime.now().strftime('%Y-%m-%d %H.%M.%S')+'.csv', 'w'))
 
 items_total = 0
 
@@ -78,7 +76,7 @@ with open(fileName) as csvfile:
         print(itemID)
         itemMetadata = requests.get(baseURL+str(itemID)+'/metadata', headers=header, cookies=cookies, verify=verify).json()
         if decade != 'not converted':
-            subjectElement = {'key':'dc.subject', 'language':'en_US', 'value':decade}
+            subjectElement = {'key': 'dc.subject', 'language': 'en_US', 'value': decade}
             itemMetadataProcessed.append(subjectElement)
             element_count = element_count + 1
             logInformation.append(decade)
@@ -139,8 +137,7 @@ with open(fileName) as csvfile:
                 itemMetadataProcessed.append(element)
                 element_count = element_count + 1
 
-
-        #print("This item originally had {} elements, but now has {} elements. Remember that each updated value comes with an additional provenance element. So if you expect 2 value changes, there should be 2 added elements.".format(original_element_count, element_count))
+        # print("This item originally had {} elements, but now has {} elements. Remember that each updated value comes with an additional provenance element. So if you expect 2 value changes, there should be 2 added elements.".format(original_element_count, element_count))
         itemMetadataProcessed = json.dumps(itemMetadataProcessed, sort_keys=True)
 
         delete = requests.delete(baseURL+itemID+'/metadata', headers=header, cookies=cookies, verify=verify)
