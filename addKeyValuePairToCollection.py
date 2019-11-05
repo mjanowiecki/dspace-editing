@@ -61,7 +61,7 @@ status = requests.get(baseURL+'/rest/status', headers=header, cookies=cookies, v
 print('authenticated')
 
 itemList = []
-endpoint = baseURL+'/rest/handle/'+collectionHandle
+endpoint = baseURL+'/rest/handle/'+handle
 collection = requests.get(endpoint, headers=header, cookies=cookies, verify=verify).json()
 collectionID = collection['uuid']
 offset = 0
@@ -110,7 +110,7 @@ for number, itemID in enumerate(itemList):
     print('updated', itemID, recordsEdited)
     delete = requests.delete(baseURL+'/rest/items/'+str(itemID)+'/metadata', headers=header, cookies=cookies, verify=verify)
     print(delete)
-    post = requests.put(baseURL+'/rest/items/'+str(itemID)+'/metadata', headers=header, cookies=cookies, verify=verify, data=itemMetadataProcessed)
+    post = requests.put(baseURL+'/rest/items/'+str(itemID)+'/metadata', headers=header, cookies=cookies, verify=verify, data=itemMetadataProcessed).json()
     print(post)
     f.writerow([itemID]+[addedKey]+[addedValue]+[delete]+[post])
 
