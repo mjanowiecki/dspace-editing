@@ -48,62 +48,64 @@ print('authenticated')
 
 dt_stamp = datetime.now().strftime('%Y-%m-%d %H.%M.%S')
 
-f = csv.writer(open(filePath+'replacedKeyValuePair'+dt_stamp+'.csv', 'w'))
-f.writerow(['itemID']+['oldKey']+['newKey']+['oldValue']+['newValue']+['delete']+['post'])
+f = csv.writer(open('replacedKeyValuePair'+dt_stamp+'.csv', 'w'))
+f.writerow(['handle']+['itemID']+['oldKey']+['newKey']+['oldValue']+['newValue']+['delete']+['post'])
 
-f2 = csv.writer(open(filePath+'notReplacedKeyValuePair'+dt_stamp+'.csv', 'w'))
+f2 = csv.writer(open('notReplacedKeyValuePair'+dt_stamp+'.csv', 'w'))
 f2.writerow(['uri']+['oldKey']+['newKey']+['oldValue']+['newValue'])
 
 values_changed = 0
 values_unchanged = 0
+row_count = 0
 
 with open(fileName) as csvfile:
     reader = csv.DictReader(csvfile)
-    row_count = sum(1 for row in reader)
     for row in reader:
+        row_count = row_count + 1
         uri = row['uri']
-        uri = uri[27:]
+        uri = uri[28:]
+        print(uri)
         oldKey = row['oldKey']
         newKey = row['newKey']
-        oldValue = row['oldValue']
-        newValue = row['newValue']
+        oldValue = row['oldSubject']
+        newValue = row['newSubject']
         if (oldValue != newValue) or (oldKey != newKey):
-            uri = requests.get(baseURL+'/rest/'+uri, headers=header, cookies=cookies, verify=verify).json()
-            for info in uri:
-                itemLink = info['link']
-                metadata = requests.get(baseURL+itemLink+'/metadata', headers=header, cookies=cookies, verify=verify).json()
-                itemMetadataProcessed = []
-                for l in range(0, len(metadata)):
-                    metadata[l].pop('schema', None)
-                    metadata[l].pop('element', None)
-                    metadata[l].pop('qualifier', None)
-                    languageValue = metadata[l]['language']
-                    if metadata[l]['key'] == oldKey and metadata[l]['value'] == oldValue:
-                        updatedMetadataElement = {}
-                        updatedMetadataElement['key'] = newKey
-                        updatedMetadataElement['value'] = newValue
-                        updatedMetadataElement['language'] = languageValue
-                        itemMetadataProcessed.append(updatedMetadataElement)
+            uri_request = requests.get(baseURL+'/rest/'+uri, headers=header, cookies=cookies, verify=verify).json()
+            itemLink = uri_request['link']
+            metadata = requests.get(baseURL+itemLink+'/metadata', headers=header, cookies=cookies, verify=verify).json()
+            itemMetadataProcessed = []
+            for l in range(0, len(metadata)):
+                metadata[l].pop('schema', None)
+                metadata[l].pop('element', None)
+                metadata[l].pop('qualifier', None)
+                languageValue = metadata[l]['language']
+                if metadata[l]['key'] == oldKey and metadata[l]['value'] == oldValue:
+                    updatedMetadataElement = {}
+                    updatedMetadataElement['key'] = newKey
+                    updatedMetadataElement['value'] = newValue
+                    updatedMetadataElement['language'] = languageValue
+                    itemMetadataProcessed.append(updatedMetadataElement)
 
-                        provNote = '\''+oldKey+': '+oldValue+'\' was replaced by \''+newKey+': '+newValue+'\' through a batch process on '+dt_stamp+'.'
-                        provNoteElement = {}
-                        provNoteElement['key'] = 'dc.description.provenance'
-                        provNoteElement['value'] = provNote
-                        provNoteElement['language'] = 'en_US'
-                        itemMetadataProcessed.append(provNoteElement)
-                    else:
-                        if metadata[l] not in itemMetadataProcessed:
-                            itemMetadataProcessed.append(metadata[l])
-                itemMetadataProcessed = json.dumps(itemMetadataProcessed)
+                    provNote = '\''+oldKey+': '+oldValue+'\' was replaced by \''+newKey+': '+newValue+'\' through a batch process on '+dt_stamp+'.'
+                    provNoteElement = {}
+                    provNoteElement['key'] = 'dc.description.provenance'
+                    provNoteElement['value'] = provNote
+                    provNoteElement['language'] = 'en_US'
+                    itemMetadataProcessed.append(provNoteElement)
+                else:
+                    if metadata[l] not in itemMetadataProcessed:
+                        itemMetadataProcessed.append(metadata[l])
+            itemMetadataProcessed = json.dumps(itemMetadataProcessed)
             delete = requests.delete(baseURL+itemLink+'/metadata', headers=header, cookies=cookies, verify=verify)
             print(delete)
             post = requests.put(baseURL+itemLink+'/metadata', headers=header, cookies=cookies, verify=verify, data=itemMetadataProcessed)
             print(post)
-            if post == '200':
-                values_changed = values_changed + 1
             f.writerow([uri]+[itemLink]+[oldKey]+[newKey]+[oldValue]+[newValue]+[delete]+[post])
+            if post.status_code == 200:
+                values_changed = values_changed + 1
+            else:
+                values_unchanged = values_unchanged + 1
         else:
-            values_unchanged = values_unchanged + 1
             f2.writerow([uri]+[oldKey]+[newKey]+[oldValue]+[newValue])
 
 logout = requests.post(baseURL+'/rest/logout', headers=header, cookies=cookies, verify=verify)
@@ -112,7 +114,7 @@ logout = requests.post(baseURL+'/rest/logout', headers=header, cookies=cookies, 
 print('Original row count: {}'.format(row_count))
 print('Total values or keys changed: {}'.format(values_changed))
 print('Total values unchanged: {}'.format(values_unchanged))
-print('total: '+(values_changed+values_unchanged))
+print('total: '+(str(values_changed+values_unchanged)))
 elapsedTime = time.time() - startTime
 m, s = divmod(elapsedTime, 60)
 h, m = divmod(m, 60)
