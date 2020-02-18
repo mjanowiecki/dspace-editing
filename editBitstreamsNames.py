@@ -44,7 +44,9 @@ cookiesFileUpload = cookies
 status = requests.get(baseURL+'/rest/status', headers=header, cookies=cookies, verify=verify).json()
 print('authenticated')
 
-f = csv.writer(open(filePath+'editBitstreamName'+datetime.now().strftime('%Y-%m-%d %H.%M.%S')+'.csv', 'w'))
+dt = datetime.now().strftime('%Y-%m-%d %H.%M.%S')
+
+f = csv.writer(open(filePath+'editBitstreamName'+dt+'.csv', 'w'))
 f.writerow(['itemID']+['oldBitstreamName']+['newBitstreamName']+['post'])
 with open(fileName) as csvfile:
     reader = csv.DictReader(csvfile)

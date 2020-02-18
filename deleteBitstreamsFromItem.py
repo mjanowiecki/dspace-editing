@@ -40,7 +40,7 @@ item = requests.get(endpoint, headers=header, cookies=cookies, verify=verify).js
 itemID = item['uuid']
 print('itemID = %s' % itemID)
 bitstreams = ''
-url = baseURL + '/rest/items/' + str(itemID) + '/bitstreams?expand=bitstreams'
+url = baseURL+'/rest/items/'+str(itemID)+'/bitstreams?expand=bitstreams'
 bitstreams = requests.get(url, headers=header, cookies=cookies, verify=verify)
 while bitstreams.status_code != 200:
     time.sleep(5)
@@ -56,16 +56,18 @@ h, m = divmod(m, 60)
 print('Bitstreams list creation time: ', '%d:%02d:%02d' % (h, m, s))
 print(bitstreamList)
 
-f = csv.writer(open(filePath + 'deletedBitstreams' + datetime.now().strftime('%Y-%m-%d %H.%M.%S') + '.csv', 'w'))
+dt = datetime.now().strftime('%Y-%m-%d %H.%M.%S')
+
+f = csv.writer(open(filePath+'deletedBitstreams'+dt+'.csv', 'w'))
 f.writerow(['bitstreamID'] + ['delete'])
 for number, bitstreamID in enumerate(bitstreamList):
     bitstreamsRemaining = len(bitstreamList) - number
     print('Bitstreams remaining: ', bitstreamsRemaining, 'bitstreamID: ', bitstreamID)
-    delete = requests.delete(baseURL + '/rest/bitstreams/' + str(bitstreamID), headers=header, cookies=cookies, verify=verify)
+    delete = requests.delete(baseURL+'/rest/bitstreams/'+str(bitstreamID), headers=header, cookies=cookies, verify=verify)
     print(delete)
     f.writerow([bitstreamID] + [delete])
 
-logout = requests.post(baseURL + '/rest/logout', headers=header, cookies=cookies, verify=verify)
+logout = requests.post(baseURL+'/rest/logout', headers=header, cookies=cookies, verify=verify)
 
 elapsedTime = time.time() - startTime
 m, s = divmod(elapsedTime, 60)
