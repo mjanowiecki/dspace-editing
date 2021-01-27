@@ -9,7 +9,7 @@ import argparse
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-secretsVersion = input('To edit production server, enter the name of the secrets file: ')
+secretsVersion = input('To edit production server, enter secrets filename: ')
 if secretsVersion != '':
     try:
         secrets = __import__(secretsVersion)
@@ -27,7 +27,7 @@ verify = secrets.verify
 skippedCollections = secrets.skippedCollections
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-f', '--fileName', help='the CSV file of changes. optional - if not provided, the script will ask for input')
+parser.add_argument('-f', '--fileName', help='the CSV file of changes.')
 args = parser.parse_args()
 
 if args.fileName:

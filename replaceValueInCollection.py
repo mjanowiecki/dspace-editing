@@ -7,7 +7,7 @@ import urllib3
 import argparse
 from datetime import datetime
 
-secretsVersion = input('To edit production server, enter the name of the secrets file: ')
+secretsVersion = input('To edit production server, enter secrets filename: ')
 if secretsVersion != '':
     try:
         secrets = __import__(secretsVersion)
@@ -18,10 +18,10 @@ else:
     print('Editing Stage')
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-k', '--key', help='the key to be searched. optional - if not provided, the script will ask for input')
-parser.add_argument('-1', '--replacedValue', help='the value to be replaced. optional - if not provided, the script will ask for input')
-parser.add_argument('-2', '--replacementValue', help='the replacement value. optional - if not provided, the script will ask for input')
-parser.add_argument('-i', '--handle', help='handle of the collection to retreive. optional - if not provided, the script will ask for input')
+parser.add_argument('-k', '--key', help='the key to be searched.')
+parser.add_argument('-1', '--replacedValue', help='the value to be replaced.')
+parser.add_argument('-2', '--replacementValue', help='the replacement value.')
+parser.add_argument('-i', '--handle', help='handle of collection to retreive.')
 args = parser.parse_args()
 
 if args.key:
@@ -53,20 +53,25 @@ skippedCollections = secrets.skippedCollections
 startTime = time.time()
 data = {'email': email, 'password': password}
 header = {'content-type': 'application/json', 'accept': 'application/json'}
-session = requests.post(baseURL+'/rest/login', headers=header, verify=verify, params=data).cookies['JSESSIONID']
+session = requests.post(baseURL+'/rest/login', headers=header, verify=verify,
+                        params=data).cookies['JSESSIONID']
 cookies = {'JSESSIONID': session}
 headerFileUpload = {'accept': 'application/json'}
 cookiesFileUpload = cookies
-status = requests.get(baseURL+'/rest/status', headers=header, cookies=cookies, verify=verify).json()
+status = requests.get(baseURL+'/rest/status', headers=header,
+                      cookies=cookies, verify=verify).json()
 userFullName = status['fullname']
 print('authenticated')
 
 endpoint = baseURL+'/rest/handle/'+handle
-collection = requests.get(endpoint, headers=header, cookies=cookies, verify=verify).json()
+collection = requests.get(endpoint, headers=header, cookies=cookies,
+                          verify=verify).json()
 collectionID = collection['uuid']
 collSels = '&collSel[]=' + collectionID
 
-f = csv.writer(open(filePath+'replacedValues'+datetime.now().strftime('%Y-%m-%d %H.%M.%S')+'.csv', 'wb'))
+dt = datetime.now().strftime('%Y-%m-%d %H.%M.%S')
+log = filePath+'replacedValues'+dt+'.csv'
+f = csv.writer(open(log, 'wb'))
 f.writerow(['handle']+['replacedValue']+['replacementValue'])
 offset = 0
 recordsEdited = 0
@@ -88,7 +93,8 @@ while items != []:
 for itemLink in itemLinks:
     itemMetadataProcessed = []
     print(itemLink)
-    metadata = requests.get(baseURL + itemLink + '/metadata', headers=header, cookies=cookies, verify=verify).json()
+    link = baseURL + itemLink + '/metadata'
+    metadata = requests.get(link, headers=header, cookies=cookies, verify=verify).json()
     for l in range(0, len(metadata)):
         metadata[l].pop('schema', None)
         metadata[l].pop('element', None)
@@ -113,9 +119,10 @@ for itemLink in itemLinks:
                 itemMetadataProcessed.append(metadata[l])
     itemMetadataProcessed = json.dumps(itemMetadataProcessed)
     print('updated', itemLink, recordsEdited)
-    delete = requests.delete(baseURL+itemLink+'/metadata', headers=header, cookies=cookies, verify=verify)
+    delete = requests.delete(link, headers=header, cookies=cookies, verify=verify)
     print(delete)
-    post = requests.put(baseURL+itemLink+'/metadata', headers=header, cookies=cookies, verify=verify, data=itemMetadataProcessed)
+    post = requests.put(link, headers=header, cookies=cookies, verify=verify,
+                        data=itemMetadataProcessed)
     print(post)
     f.writerow([itemLink]+[updatedMetadataElement['key']]+[updatedMetadataElement['value']]+[delete]+[post])
 

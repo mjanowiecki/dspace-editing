@@ -9,7 +9,7 @@ from datetime import datetime
 import ast
 import argparse
 
-secretsVersion = input('To edit production server, enter the name of the secrets file: ')
+secretsVersion = input('To edit production server, enter secrets filename: ')
 if secretsVersion != '':
     try:
         secrets = __import__(secretsVersion)

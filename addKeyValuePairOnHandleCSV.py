@@ -8,7 +8,7 @@ import urllib3
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-secretsVersion = input('To edit production server, enter the name of the secrets file: ')
+secretsVersion = input('To edit production server, enter secrets filename: ')
 if secretsVersion != '':
     try:
         secrets = __import__(secretsVersion)
@@ -28,18 +28,21 @@ skippedCollections = secrets.skippedCollections
 startTime = time.time()
 data = {'email': email, 'password': password}
 header = {'content-type': 'application/json', 'accept': 'application/json'}
-session = requests.post(baseURL+'/rest/login', headers=header, verify=verify, params=data).cookies['JSESSIONID']
+session = requests.post(baseURL+'/rest/login', headers=header, verify=verify,
+                        params=data).cookies['JSESSIONID']
 cookies = {'JSESSIONID': session}
 headerFileUpload = {'accept': 'application/json'}
 cookiesFileUpload = cookies
-status = requests.get(baseURL+'/rest/status', headers=header, cookies=cookies, verify=verify).json()
+status = requests.get(baseURL+'/rest/status', headers=header, cookies=cookies,
+                      verify=verify).json()
 print('authenticated')
 
 fileName = filePath+input('Enter fileName (including \'.csv\'): ')
 addedKey = input('Enter key: ')
 startTime = time.time()
+dt = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-f = csv.writer(open(filePath+'addKeyValuePair'+datetime.now().strftime('%Y-%m-%d %H.%M.%S')+'.csv', 'w'))
+f = csv.writer(open(filePath+'addKeyValuePair'+dt+'.csv', 'w'))
 f.writerow(['itemID']+['addedKey']+['addedValue']+['delete']+['post'])
 
 with open(fileName) as csvfile:
@@ -52,13 +55,16 @@ with open(fileName) as csvfile:
         addedMetadataElement['value'] = addedValue
         addedMetadataElement['language'] = 'en_us'
         endpoint = baseURL+'/rest/handle/'+handle
-        item = requests.get(endpoint, headers=header, cookies=cookies, verify=verify).json()
+        item = requests.get(endpoint, headers=header, cookies=cookies,
+                            verify=verify).json()
         itemID = item['uuid']
-        itemMetadata = requests.get(baseURL+'/rest/items/'+str(itemID)+'/metadata', headers=header, cookies=cookies, verify=verify).json()
+        link = baseURL+'/rest/items/'+str(itemID)+'/metadata'
+        itemMetadata = requests.get(link, headers=header, cookies=cookies,
+                                    verify=verify).json()
         itemMetadata.append(addedMetadataElement)
         itemMetadataProcessed = itemMetadata
-
-        provNote = '\''+addedKey+': '+addedValue+'\' was added through a batch process on '+datetime.now().strftime('%Y-%m-%d %H:%M:%S')+'.'
+        provNote = '\''+addedKey+': '+addedValue+'\' was added through a batch\
+                    process on '+dt+'.'
         provNoteElement = {}
         provNoteElement['key'] = 'dc.description.provenance'
         provNoteElement['value'] = provNote
@@ -66,8 +72,10 @@ with open(fileName) as csvfile:
         itemMetadataProcessed.append(provNoteElement)
 
         itemMetadataProcessed = json.dumps(itemMetadataProcessed)
-        delete = requests.delete(baseURL+'/rest/items/'+str(itemID)+'/metadata', headers=header, cookies=cookies, verify=verify)
+        delete = requests.delete(link, headers=header, cookies=cookies,
+                                 verify=verify)
         print(delete)
-        post = requests.put(baseURL+'/rest/items/'+str(itemID)+'/metadata', headers=header, cookies=cookies, verify=verify, data=itemMetadataProcessed)
+        post = requests.put(link, headers=header, cookies=cookies,
+                            verify=verify, data=itemMetadataProcessed)
         print(post)
         f.writerow([itemID]+[addedMetadataElement['key']]+[addedMetadataElement['value']]+[delete]+[post])

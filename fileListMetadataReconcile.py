@@ -1,110 +1,60 @@
-# -*- coding: utf-8 -*-
-import csv
-import time
-import os
+import pandas as pd
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-d', '--directory', help='the directory of the files. optional - if not provided, the script will ask for input')
-parser.add_argument('-f', '--fileNameCSV', help='the metadata CSV file. optional - if not provided, the script will ask for input')
-parser.add_argument('-e', '--fileExtension', help='the file extension. optional - if not provided, the script will ask for input')
+parser.add_argument('-f', '--filename', help='metadata CSV')
+parser.add_argument('-f2', '--filename2', help='file listings CSV')
 args = parser.parse_args()
 
-if args.directory:
-    directory = args.directory
+if args.filename:
+    filename = args.filename
 else:
-    directory = input('Enter directory (C:/Test/): ')
-if args.fileNameCSV:
-    fileNameCSV = args.fileNameCSV
+    filename = input('Enter metadata CSV: ')
+if args.filename2:
+    filename2 = args.filename2
 else:
-    fileNameCSV = input('Enter metadata CSV file: ')
-if args.fileExtension:
-    fileExtension = args.fileExtension
-else:
-    fileExtension = input('Enter file extension: ')
+    filename2 = input('Enter file listing CSV: ')
 
-startTime = time.time()
-fileIdentifierList = []
-for root, dirs, files in os.walk(directory, topdown=True):
-    for file in files:
-        if file.endswith(fileExtension):
-            file.replace('.'+fileExtension, '')
-            fileIdentifierList.append(file)
+df_files = pd.read_csv(filename2)
+fileIdList = df_files.fileIdentifier.tolist()
+print('fileIds: '+str(len(fileIdList)))
 
-elapsedTime = time.time() - startTime
-m, s = divmod(elapsedTime, 60)
-h, m = divmod(m, 60)
-print('File list creation time: ', '%d:%02d:%02d' % (h, m, s))
-
-f = csv.writer(open('collectionfileList.csv', 'w'))
-f.writerow(['fileName'])
-
-for file in fileIdentifierList:
-    f.writerow([file])
-
-metadataIdentifierList = []
-f = csv.writer(open('metadataFileList.csv', 'w'))
-f.writerow(['metadataItemID'])
-with open(fileNameCSV) as csvfile:
-    reader = csv.DictReader(csvfile)
-    for row in reader:
-        value = row['fileIdentifier']
-        f.writerow([value])
-        metadataIdentifierList.append(value)
+df_data = pd.read_csv(filename)
+metadataIdList = df_data.fileIdentifier.tolist()
+print('metadataIds: '+str(len(metadataIdList)))
 
 fileMatches = []
-for fileID in fileIdentifierList:
-    for metadataID in metadataIdentifierList:
-        if fileID.startswith(metadataID):
+for fileID in fileIdList:
+    for metadataID in metadataIdList:
+        if fileID == metadataID:
             fileMatches.append(fileID)
-
-f = csv.writer(open('filesNotInMetadata.csv', 'w'))
-f.writerow(['fileItemID'])
-filesNotInMetadata = set(fileIdentifierList) - set(fileMatches)
-for file in filesNotInMetadata:
-    f.writerow([file])
+print('fileMatches: '+str(len(fileMatches)))
 
 metadataMatches = []
-for metadataID in metadataIdentifierList:
-    for fileID in fileIdentifierList:
-        if fileID.startswith(metadataID):
+for metadataID in metadataIdList:
+    for fileID in fileIdList:
+        if fileID == metadataID:
             metadataMatches.append(metadataID)
+print('metadataMatches: '+str(len(metadataMatches)))
 
-metadataWithNoFiles = set(metadataIdentifierList) - set(metadataMatches)
+filesNotInMetadata = set(fileIdList) - set(fileMatches)
+print('filesNotInMetadata: '+str(len(filesNotInMetadata)))
+if filesNotInMetadata:
+    filesNotInMetadata = {'fileItemID': filesNotInMetadata}
+    notInMetadata = pd.DataFrame.from_dict(filesNotInMetadata)
+    notInMetadata.to_csv('filesNotInMetadata.csv')
 
-with open(fileNameCSV) as csvfile:
-    f = csv.writer(open('metadataWithNoFiles.csv', 'w'))
-    reader = csv.DictReader(csvfile)
-    header = next(reader)
-    headerRow = []
-    for k, v in header.iteritems():
-        headerRow.append(k)
-    f.writerow(headerRow)
-    for row in reader:
-        csvRow = []
-        for metadata in metadataWithNoFiles:
-            if metadata == row['fileIdentifier']:
-                for value in headerRow:
-                    csvRow.append(row[value])
-                f.writerow(csvRow)
+metadataWithNoFiles = set(metadataIdList) - set(metadataMatches)
+print('metadataWithNoFiles: '+str(len(metadataWithNoFiles)))
+if metadataWithNoFiles:
+    noFiles = {'fileIdentifier': metadataWithNoFiles}
+    df3 = pd.DataFrame.from_dict(noFiles)
+    noFilesDF = df3.merge(df_data, how='left', on='fileIdentifier')
+    noFilesDF.to_csv('metadataWithNoFiles.csv')
 
-with open(fileNameCSV) as csvfile:
-    f = csv.writer(open('metadataWithFiles.csv', 'w'))
-    reader = csv.DictReader(csvfile)
-    header = next(reader)
-    headerRow = []
-    for k, v in header.iteritems():
-        headerRow.append(k)
-    f.writerow(headerRow)
-    for row in reader:
-        csvRow = []
-        for metadata in metadataMatches:
-            if metadata == row['fileIdentifier']:
-                for value in headerRow:
-                    csvRow.append(row[value])
-                f.writerow(csvRow)
-
-elapsedTime = time.time() - startTime
-m, s = divmod(elapsedTime, 60)
-h, m = divmod(m, 60)
-print('Total script run time: ', '%d:%02d:%02d' % (h, m, s))
+if metadataMatches:
+    metadataMatches = {'fileIdentifier': metadataMatches}
+    df4 = pd.DataFrame.from_dict(metadataMatches)
+    matches = df4.merge(df_data, how='left', on='fileIdentifier')
+    matches = matches.merge(df_files, how='left', on='fileIdentifier')
+    matches.to_csv('metadataWithFiles.csv')

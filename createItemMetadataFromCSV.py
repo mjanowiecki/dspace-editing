@@ -3,15 +3,15 @@ import json
 import csv
 
 
-def createMetadataElementCSV(key, valueSource, language):
+def createMetadataElementCSV(key, valueSource, lang):
     value = row[valueSource].strip()
     if value != '':
-        if language != '':
-            metadataElement = {'key': key, 'language': language, 'value': value}
+        if lang != '':
+            metadataElement = {'key': key, 'lang': lang, 'value': value}
             metadata.append(metadataElement)
         elif key == 'dc.date.issued' and '/' in value:
             value = value.replace('/', '--')
-            metadataElement = {'key': key, 'language': language, 'value': value}
+            metadataElement = {'key': key, 'lang': lang, 'value': value}
             metadata.append(metadataElement)
         else:
             metadataElement = {'key': key, 'value': value}
@@ -20,21 +20,21 @@ def createMetadataElementCSV(key, valueSource, language):
         pass
 
 
-def createMetadataElementCSVSplitField(key, valueSource, language):
+def createMetadataElementCSVSplitField(key, valueSource, lang):
     if row[valueSource] != '':
         if '|' in row[valueSource]:
             values = row[valueSource].split('|')
             for value in values:
-                if language != '':
-                    metadataElement = {'key': key, 'language': language, 'value': value}
+                if lang != '':
+                    metadataElement = {'key': key, 'lang': lang, 'value': value}
                     metadata.append(metadataElement)
                 else:
                     metadataElement = {'key': key, 'value': value}
                     metadata.append(metadataElement)
         else:
             value = row[valueSource]
-            if language != '':
-                metadataElement = {'key': key, 'language': language, 'value': value}
+            if lang != '':
+                metadataElement = {'key': key, 'lang': lang, 'value': value}
                 metadata.append(metadataElement)
             else:
                 metadataElement = {'key': key, 'value': value}
@@ -43,9 +43,9 @@ def createMetadataElementCSVSplitField(key, valueSource, language):
         pass
 
 
-def createMetadataElementDirect(key, value, language):
-    if language != '':
-        metadataElement = {'key': key, 'language': language, 'value': value}
+def createMetadataElementDirect(key, value, lang):
+    if lang != '':
+        metadataElement = {'key': key, 'lang': lang, 'value': value}
         metadata.append(metadataElement)
     else:
         metadataElement = {'key': key, 'value': value}
@@ -70,7 +70,7 @@ with open(fileName) as csvfile:
         createMetadataElementCSV('dc.format.extent', '????', '')
         createMetadataElementDirect('dc.format.mimetype', '????', 'en_US')
         createMetadataElementDirect('dc.identifier.other', '????', '')
-        createMetadataElementDirect('dc.language.iso', '????', 'en_US')
+        createMetadataElementDirect('dc.lang.iso', '????', 'en_US')
         createMetadataElementDirect('dc.publisher', '????', 'en_US')
         createMetadataElementDirect('dc.relation', '????', 'en_US')
         createMetadataElementDirect('dc.rights', '????', 'en_US')

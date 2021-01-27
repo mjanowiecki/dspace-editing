@@ -7,7 +7,7 @@ import csv
 from datetime import datetime
 import argparse
 
-secretsVersion = input('To edit production server, enter the name of the secrets file: ')
+secretsVersion = input('To edit production server, enter secrets filename: ')
 if secretsVersion != '':
     try:
         secrets = __import__(secretsVersion)
@@ -18,7 +18,7 @@ else:
     print('Editing Stage')
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-f', '--fileName', help='the name of the CSV with the bitstream name changes. optional - if not provided, the script will ask for input')
+parser.add_argument('-f', '--fileName', help='CSV of bitstream name changes')
 args = parser.parse_args()
 if args.uri:
     fileName = args.fileName
@@ -37,11 +37,13 @@ skippedCollections = secrets.skippedCollections
 startTime = time.time()
 data = {'email': email, 'password': password}
 header = {'content-type': 'application/json', 'accept': 'application/json'}
-session = requests.post(baseURL+'/rest/login', headers=header, verify=verify, params=data).cookies['JSESSIONID']
+session = requests.post(baseURL+'/rest/login', headers=header, verify=verify,
+                        params=data).cookies['JSESSIONID']
 cookies = {'JSESSIONID': session}
 headerFileUpload = {'accept': 'application/json'}
 cookiesFileUpload = cookies
-status = requests.get(baseURL+'/rest/status', headers=header, cookies=cookies, verify=verify).json()
+status = requests.get(baseURL+'/rest/status', headers=header, cookies=cookies,
+                      verify=verify).json()
 print('authenticated')
 
 dt = datetime.now().strftime('%Y-%m-%d %H.%M.%S')
@@ -55,38 +57,50 @@ with open(fileName) as csvfile:
         newValue = row['newFileId']
         handle = row['handle']
         endpoint = baseURL+'/rest/handle/'+handle
-        item = requests.get(endpoint, headers=header, cookies=cookies, verify=verify).json()
+        item = requests.get(endpoint, headers=header, cookies=cookies,
+                            verify=verify).json()
         itemID = str(item['uuid'])
-        bitstreams = requests.get(baseURL+'/rest/items/'+itemID+'/bitstreams', headers=header, cookies=cookies, verify=verify).json()
+        itemLink = baseURL+'/rest/items/'+itemID
+        bitLink = itemLink+'/bitstreams'
+        bitstreams = requests.get(bitLink, headers=header, cookies=cookies,
+                                  verify=verify).json()
         for bitstream in bitstreams:
             oldBitstreamName = bitstream['name']
             bitstreamID = bitstream['link']
             updatedBitstream = json.dumps(bitstream)
             print(json.dumps(bitstream))
             updatedBitstream = updatedBitstream.replace(oldValue, newValue)
-            post = requests.put(baseURL+bitstreamID, headers=header, cookies=cookies, verify=verify, data=updatedBitstream)
+            post = requests.put(baseURL+bitstreamID, headers=header,
+                                cookies=cookies, verify=verify,
+                                data=updatedBitstream)
             print(post)
             f.writerow([itemID]+[oldValue]+[newValue]+[post])
             updatedItemMetadataList = []
-            metadata = requests.get(baseURL+'/rest/items/'+str(itemID)+'/metadata', headers=header, cookies=cookies, verify=verify).json()
-            for l in range(0, len(metadata)):
-                metadata[l].pop('schema', None)
-                metadata[l].pop('element', None)
-                metadata[l].pop('qualifier', None)
-                updatedItemMetadataList.append(metadata[l])
-            provNote = 'Bitstream name changed from ' + oldValue + ' to ' + newValue + ' through a batch process on '+datetime.now().strftime('%Y-%m-%d %H:%M:%S')+'.'
+            link = baseURL+'/rest/items/'+str(itemID)+'/metadata'
+            metadata = requests.get(link, headers=header, cookies=cookies,
+                                    verify=verify).json()
+            for element in range(0, len(metadata)):
+                metadata[element].pop('schema', None)
+                metadata[element].pop('element', None)
+                metadata[element].pop('qualifier', None)
+                updatedItemMetadataList.append(metadata[element])
+            provNote = ('Bitstream name changed from '+oldValue+' to '
+                        + newValue+' by batch process on '+dt+'.')
             provNoteElement = {}
             provNoteElement['key'] = 'dc.description.provenance'
             provNoteElement['value'] = provNote
             provNoteElement['language'] = 'en_US'
             updatedItemMetadataList.append(provNoteElement)
             updatedItemMetadata = json.dumps(updatedItemMetadataList)
-            delete = requests.delete(baseURL+'/rest/items/'+str(itemID)+'/metadata', headers=header, cookies=cookies, verify=verify)
+            delete = requests.delete(link, headers=header, cookies=cookies,
+                                     verify=verify)
             print(delete)
-            post = requests.put(baseURL+'/rest/items/'+str(itemID)+'/metadata', headers=header, cookies=cookies, verify=verify, data=updatedItemMetadata)
+            post = requests.put(link, headers=header, cookies=cookies,
+                                verify=verify, data=updatedItemMetadata)
             print(post)
 
-logout = requests.post(baseURL+'/rest/logout', headers=header, cookies=cookies, verify=verify)
+logout = requests.post(baseURL+'/rest/logout', headers=header, cookies=cookies,
+                       verify=verify)
 
 elapsedTime = time.time() - startTime
 m, s = divmod(elapsedTime, 60)

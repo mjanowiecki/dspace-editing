@@ -9,7 +9,7 @@ import argparse
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-secretsVersion = input('To edit production, enter secrets file name: ')
+secretsVersion = input('To edit production, enter secrets filename: ')
 if secretsVersion != '':
     try:
         secrets = __import__(secretsVersion)
@@ -40,14 +40,18 @@ if args.key:
 else:
     key = input('Enter the key: ')
 
+key = 'dc.title.alternative'
+
 startTime = time.time()
 data = {'email': email, 'password': password}
 header = {'content-type': 'application/json', 'accept': 'application/json'}
-session = requests.post(baseURL+'/rest/login', headers=header, verify=verify, params=data).cookies['JSESSIONID']
+session = requests.post(baseURL+'/rest/login', headers=header, verify=verify,
+                        params=data).cookies['JSESSIONID']
 cookies = {'JSESSIONID': session}
 headerFileUpload = {'accept': 'application/json'}
 cookiesFileUpload = cookies
-status = requests.get(baseURL+'/rest/status', headers=header, cookies=cookies, verify=verify).json()
+status = requests.get(baseURL+'/rest/status', headers=header, cookies=cookies,
+                      verify=verify).json()
 print('authenticated')
 
 dt = datetime.now().strftime('%Y-%m-%d %H.%M.%S')
@@ -68,14 +72,17 @@ with open(fileName) as csvfile:
         provNoteElement['key'] = 'dc.description.provenance'
         provNoteElement['language'] = 'en_US'
 
-        metadata = requests.get(baseURL+itemLink+'/metadata', headers=header, cookies=cookies, verify=verify).json()
+        link = baseURL+itemLink+'/metadata'
+        metadata = requests.get(link, headers=header, cookies=cookies,
+                                verify=verify).json()
         df = pd.DataFrame.from_dict(metadata)
         df = df.drop(['schema', 'element', 'qualifier'], axis=1)
         keyList = df.key.tolist()
         oldkeyCount = len(keyList)
         if key in keyList:
             print('Error: '+itemLink+' already exists')
-            logList.append({'itemID': itemLink, 'delete': 'ERROR', 'post': 'ERROR'})
+            logList.append({'itemID': itemLink, 'delete': 'ERROR',
+                            'post': 'ERROR'})
             pass
         else:
             for count, nv in enumerate(newValues):
@@ -85,25 +92,29 @@ with open(fileName) as csvfile:
                 provNote = key+': '+nv+' added by batch process on '+dt+'.'
                 provNoteElement['value'] = provNote
                 print(provNoteElement)
-                df = df.append([newElement, provNoteElement], ignore_index=True)
-                logDict.update({'key_'+str(count): key, 'value_'+str(count): nv})
+                df = df.append([newElement, provNoteElement],
+                               ignore_index=True)
+                scount = str(count)
+                logDict.update({'key_'+scount: key, 'value_'+scount: nv})
 
             keyList = df.key.tolist()
             newkeyCount = len(keyList)
             keyChange = newkeyCount - oldkeyCount
             print(str(keyChange)+' key/value pairs added to record')
             itemMetadataProcessed = df.to_json(orient='records')
-            # delete = requests.delete(baseURL+itemLink+'/metadata', headers=header, cookies=cookies, verify=verify)
-            delete = 'testing'
+            delete = requests.delete(link, headers=header,
+                                     cookies=cookies, verify=verify)
             print(delete)
-            # post = requests.put(baseURL+itemLink+'/metadata', headers=header, cookies=cookies, verify=verify, data=itemMetadataProcessed)
-            post = 'testing'
+            post = requests.put(link, headers=header, cookies=cookies,
+                                verify=verify, data=itemMetadataProcessed)
             print(post)
             print('')
-            logDict.update({'itemID': itemLink, 'delete': delete, 'post': post})
+            logDict.update({'itemID': itemLink, 'delete': delete,
+                            'post': post})
             logList.append(logDict)
 
-logout = requests.post(baseURL+'/rest/logout', headers=header, cookies=cookies, verify=verify)
+logout = requests.post(baseURL+'/rest/logout', headers=header, cookies=cookies,
+                       verify=verify)
 
 log = pd.DataFrame.from_dict(logList)
 print(log.head(15))

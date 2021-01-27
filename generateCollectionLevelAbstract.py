@@ -5,7 +5,7 @@ import csv
 import argparse
 import urllib3
 
-secretsVersion = input('To edit production server, enter the name of the secrets file: ')
+secretsVersion = input('To edit production server, enter secrets filename: ')
 if secretsVersion != '':
     try:
         secrets = __import__(secretsVersion)
@@ -16,8 +16,8 @@ else:
     print('Editing Stage')
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-f', '--fileNameCSV', help='the metadata CSV file. optional - if not provided, the script will ask for input')
-parser.add_argument('-i', '--handle', help='handle of the collection. optional - if not provided, the script will ask for input')
+parser.add_argument('-f', '--fileNameCSV', help='the metadata CSV file.')
+parser.add_argument('-i', '--handle', help='handle of the collection.')
 args = parser.parse_args()
 
 if args.fileNameCSV:
@@ -40,11 +40,13 @@ skippedCollections = secrets.skippedCollections
 
 data = {'email': email, 'password': password}
 header = {'content-type': 'application/json', 'accept': 'application/json'}
-session = requests.post(baseURL+'/rest/login', headers=header, verify=verify, params=data).cookies['JSESSIONID']
+session = requests.post(baseURL+'/rest/login', headers=header, verify=verify,
+                        params=data).cookies['JSESSIONID']
 cookies = {'JSESSIONID': session}
 headerFileUpload = {'accept': 'application/json'}
 cookiesFileUpload = cookies
-status = requests.get(baseURL+'/rest/status', headers=header, cookies=cookies, verify=verify).json()
+status = requests.get(baseURL+'/rest/status', headers=header, cookies=cookies,
+                      verify=verify).json()
 userFullName = status['fullname']
 print('authenticated')
 
@@ -74,7 +76,7 @@ for seriesTitle in seriesTitles:
     editedSeriesTitle = seriesTitle.replace(' ', '+')
     try:
         editedSeriesTitle = editedSeriesTitle.replace('"', '&quot;')
-    except:
+    except KeyError:
         pass
     seriesLink = '<li><a href="https://jscholarship.library.jhu.edu/discover?scope='+handleEdited+'&query=%22'+editedSeriesTitle+'%22&sort_by=dc.title_sort&order=asc&submit=">'+seriesTitle+'</a></li>'
     seriesLinks += seriesLink
@@ -89,7 +91,10 @@ collection = json.dumps(collection)
 
 
 print(collection)
-post = requests.put(baseURL+'/rest/collections/'+collectionID, headers=header, cookies=cookies, verify=verify, data=collection)
+collLink = baseURL+'/rest/collections/'+collectionID
+post = requests.put(collLink, headers=header, cookies=cookies, verify=verify,
+                    data=collection)
 print(post)
 
-logout = requests.post(baseURL+'/rest/logout', headers=header, cookies=cookies, verify=verify)
+logout = requests.post(baseURL+'/rest/logout', headers=header, cookies=cookies,
+                       verify=verify)

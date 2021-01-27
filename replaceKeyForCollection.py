@@ -7,7 +7,7 @@ from datetime import datetime
 import urllib3
 import argparse
 
-secretsVersion = input('To edit production server, enter the name of the secrets file: ')
+secretsVersion = input('To edit production server, enter secrets filename: ')
 if secretsVersion != '':
     try:
         secrets = __import__(secretsVersion)
@@ -18,9 +18,9 @@ else:
     print('Editing Stage')
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-1', '--replacedKey', help='the key to be replaced. optional - if not provided, the script will ask for input')
-parser.add_argument('-2', '--replacementKey', help='the replacement key. optional - if not provided, the script will ask for input')
-parser.add_argument('-i', '--handle', help='handle of the collection to retreive. optional - if not provided, the script will ask for input')
+parser.add_argument('-1', '--replacedKey', help='the key to be replaced.')
+parser.add_argument('-2', '--replacementKey', help='the new key.')
+parser.add_argument('-i', '--handle', help='collection handle to retreive.')
 args = parser.parse_args()
 
 if args.replacedKey:

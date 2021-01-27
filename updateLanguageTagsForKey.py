@@ -7,7 +7,7 @@ from datetime import datetime
 import urllib3
 import argparse
 
-secretsVersion = input('To edit production server, enter the name of the secrets file: ')
+secretsVersion = input('To edit production server, enter secrets filename: ')
 if secretsVersion != '':
     try:
         secrets = __import__(secretsVersion)
@@ -18,7 +18,7 @@ else:
     print('Editing Stage')
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-k', '--key', help='the key to be updated. optional - if not provided, the script will ask for input')
+parser.add_argument('-k', '--key', help='the key to be updated.')
 args = parser.parse_args()
 
 if args.key:
@@ -70,7 +70,7 @@ for itemLink in itemLinks:
         metadata[l].pop('schema', None)
         metadata[l].pop('element', None)
         metadata[l].pop('qualifier', None)
-        if metadata[l]['key'] == key and metadata[l]['language'] == None:
+        if metadata[l]['key'] == key and metadata[l]['language'] is None:
             updatedMetadataElement = {}
             updatedMetadataElement['key'] = metadata[l]['key']
             updatedMetadataElement['value'] = metadata[l]['value']

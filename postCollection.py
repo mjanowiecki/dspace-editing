@@ -9,7 +9,7 @@ import urllib3
 import argparse
 
 
-secretsVersion = input('To edit production server, enter the name of the secrets file: ')
+secretsVersion = input('To edit production server, enter secrets filename: ')
 if secretsVersion != '':
     try:
         secrets = __import__(secretsVersion)
@@ -20,10 +20,10 @@ else:
     print('Editing Stage')
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-d', '--directory', help='the directory of the files. optional - if not provided, the script will ask for raw_input')
-parser.add_argument('-e', '--fileExtension', help='the file extension. optional - if not provided, the script will ask for raw_input')
-parser.add_argument('-i', '--communityHandle', help='handle of the community. optional - if not provided, the script will ask for raw_input')
-parser.add_argument('-n', '--collectionName', help='the name of the collection. optional - if not provided, the script will ask for raw_input')
+parser.add_argument('-d', '--directory', help='the directory of the files.')
+parser.add_argument('-e', '--fileExtension', help='the file extension.')
+parser.add_argument('-i', '--communityHandle', help='handle of the community.')
+parser.add_argument('-n', '--collectionName', help='name of the collection.')
 args = parser.parse_args()
 
 if args.directory:
@@ -55,11 +55,13 @@ skippedCollections = secrets.skippedCollections
 startTime = time.time()
 data = {'email': email, 'password': password}
 header = {'content-type': 'application/json', 'accept': 'application/json'}
-session = requests.post(baseURL+'/rest/login', headers=header, verify=verify, params=data).cookies['JSESSIONID']
+session = requests.post(baseURL+'/rest/login', headers=header, verify=verify,
+                        params=data).cookies['JSESSIONID']
 cookies = {'JSESSIONID': session}
 headerFileUpload = {'accept': 'application/json'}
 cookiesFileUpload = cookies
-status = requests.get(baseURL+'/rest/status', headers=header, cookies=cookies, verify=verify).json()
+status = requests.get(baseURL+'/rest/status', headers=header, cookies=cookies,
+                      verify=verify).json()
 userFullName = status['fullname']
 print('authenticated')
 
@@ -84,7 +86,9 @@ for k, v in fileList.items():
 f2 = open('fileListDict.txt', 'w')
 f2.write(json.dumps(fileList))
 
-# Use this section of code if 'fileListDict.txt' has already been generated and comment out lines 64-83. This is useful if uploading a very large collection as generating the file list will take some time.
+# Use this section of code if 'fileListDict.txt' has already been generated.
+# And comment out lines 64-83.
+# Useful if uploading very large collection; creating file list will take time.
 # f3=open('fileListDict.txt', 'r')
 # fileList = json.load(f3)
 
@@ -127,7 +131,7 @@ for itemMetadata in collectionMetadata:
         print('Created item: {}'.format(itemID_name))
         print('Total items: {}'.format(items_total))
 
-        # #Post bitstream - front and back. Deprecated method, preserved for reference
+        # Post bitstream - front and back. Deprecated method, preserved for reference
         # for k,v in fileList.items():
         #     if k == fileIdentifier + '-Front':
         #         bitstream = fileList[k]
